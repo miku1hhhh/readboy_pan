@@ -9,7 +9,6 @@
     "db:init:local": "wrangler d1 execute netdisk-history --file=./schema.sql --local"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20261007.0",
     "wrangler": "^3.80.0"
   }
 }
