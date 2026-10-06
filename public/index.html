@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>网盘管理器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --primary-soft: #eef2ff;
+            --success: #10b981;
+            --success-soft: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --info: #0ea5e9;
+            --info-soft: #f0f9ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --text-faint: #94a3b8;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+            --shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+            --radius-sm: 6px;
+            --radius: 10px;
+            --radius-lg: 14px;
+        }
+        * { -webkit-tap-highlight-color: transparent; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                         "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+                         "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .app-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .app-brand {
+            display: flex; align-items: center;
+            font-weight: 700; font-size: 17px;
+            color: var(--text); letter-spacing: -0.01em;
+        }
+        .app-brand-logo {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; margin-right: 10px; font-size: 15px;
+            box-shadow: 0 4px 10px -2px rgba(79, 70, 229, 0.4);
+        }
+        .nav-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-pill {
+            border-radius: 999px; padding: 6px 14px;
+            font-size: 13px; font-weight: 500;
+            border: 1px solid transparent; transition: all 0.15s ease;
+            display: inline-flex; align-items: center; gap: 6px; line-height: 1.4;
+        }
+        .btn-pill:hover { transform: translateY(-1px); }
+        .btn-soft { background: var(--card); color: var(--text); border-color: var(--border); }
+        .btn-soft:hover { background: #f1f5f9; border-color: #cbd5e1; color: var(--text); }
+        .btn-primary-soft { background: var(--primary-soft); color: var(--primary); border-color: transparent; }
+        .btn-primary-soft:hover { background: #e0e7ff; color: var(--primary-dark); }
+        .btn-success-soft { background: var(--success-soft); color: var(--success); border-color: transparent; }
+        .btn-success-soft:hover { background: #d1fae5; color: #059669; }
+        .btn-icon {
+            width: 34px; height: 34px; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+        }
+        .surface {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); box-shadow: var(--shadow);
+        }
+        .surface-header {
+            padding: 14px 18px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .surface-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; margin: 0; }
+        .surface-body { padding: 16px 18px; }
+        .form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.01em; }
+        .form-control, .form-select {
+            border-color: var(--border); border-radius: var(--radius-sm);
+            font-size: 13px; padding: 6px 10px; transition: all 0.15s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .form-control-sm { font-size: 13px; padding: 5px 9px; }
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: var(--danger); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        .config-section-title {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            letter-spacing: 0.05em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 6px;
+            margin: 4px 0 10px 0; padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .upload-card { transition: all 0.2s ease; }
+        .upload-card:hover { border-color: #cbd5e1; box-shadow: var(--shadow-md); }
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: var(--radius);
+            padding: 20px; text-align: center; cursor: pointer;
+            transition: all 0.2s; background: #fafbfc; margin: 0;
+        }
+        .upload-zone:hover { border-color: var(--primary); background: var(--primary-soft); }
+        .upload-zone:hover .upload-zone-icon { transform: scale(1.05); }
+        .upload-zone-icon { font-size: 26px; color: var(--primary); margin-bottom: 8px; transition: all 0.2s; }
+        .upload-zone-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .upload-zone-hint { font-size: 12px; color: var(--text-muted); }
+        .upload-zone input[type="file"] { display: none; }
+        #uploadQueueCard { overflow: hidden; }
+        .queue-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; border: none; padding: 12px 18px;
+        }
+        .queue-stats-badge {
+            font-size: 12px; padding: 3px 10px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 999px; margin-left: 8px; font-weight: 500;
+        }
+        .queue-item {
+            display: flex; align-items: center; padding: 10px 16px;
+            border-bottom: 1px solid var(--border); transition: background 0.15s;
+        }
+        .queue-item:last-child { border-bottom: none; }
+        .queue-item:hover { background: #fafbfc; }
+        .queue-name {
+            font-weight: 500; font-size: 13px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .queue-bar {
+            height: 6px; margin-top: 5px; border-radius: 3px;
+            background: #f1f5f9; overflow: hidden;
+        }
+        .queue-bar .progress-bar { border-radius: 3px; transition: width 0.1s linear; }
+        .queue-status { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        .queue-speed { font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+        .filter-bar {
+            display: flex; flex-wrap: wrap; gap: 12px;
+            align-items: center; justify-content: space-between; margin-bottom: 18px;
+        }
+        .segmented {
+            display: inline-flex; background: var(--card);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 3px; gap: 2px; box-shadow: var(--shadow-sm);
+        }
+        .segmented button {
+            border: none; background: transparent; color: var(--text-muted);
+            font-size: 13px; font-weight: 500; padding: 6px 12px;
+            border-radius: 7px; transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .segmented button:hover { color: var(--text); background: #f1f5f9; }
+        .segmented button.active {
+            background: var(--primary); color: white;
+            box-shadow: 0 2px 6px -1px rgba(79, 70, 229, 0.4);
+        }
+        .segmented button i { font-size: 12px; }
+        .search-box { position: relative; max-width: 260px; }
+        .search-box input { padding-left: 34px; border-radius: 10px; background: var(--card); }
+        .search-box .search-icon {
+            position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+            color: var(--text-faint); font-size: 13px; pointer-events: none;
+        }
+        .grid-view .file-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden;
+            transition: all 0.2s ease; height: 100%; cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+        .grid-view .file-card:hover {
+            transform: translateY(-3px); box-shadow: var(--shadow-lg);
+            border-color: #cbd5e1;
+        }
+        .file-thumb {
+            position: relative; height: 140px; background: #f1f5f9;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .file-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .file-card:hover .file-thumb img { transform: scale(1.05); }
+        .file-thumb-icon { font-size: 40px; color: var(--text-faint); }
+        .file-card-body { padding: 12px 14px; }
+        .file-card-name {
+            font-weight: 500; font-size: 13px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .file-card-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+        .file-card-actions { display: flex; padding: 0 8px 8px 8px; gap: 4px; }
+        .file-card-actions .btn {
+            flex: 1; font-size: 12px; padding: 5px 4px;
+            border-radius: 7px; border-color: var(--border); color: var(--text-muted);
+        }
+        .file-card-actions .btn:hover { color: var(--text); background: #f1f5f9; }
+        .file-card-actions .btn.preview-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+        .file-card-actions .btn.delete-btn:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+        .list-view .file-list-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 16px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            margin-bottom: 8px; transition: all 0.15s; cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+        .list-view .file-list-item:hover { border-color: #cbd5e1; box-shadow: var(--shadow-md); transform: translateX(2px); }
+        .list-view .file-icon-small {
+            width: 40px; height: 40px; display: flex;
+            align-items: center; justify-content: center;
+            background: var(--primary-soft); color: var(--primary);
+            border-radius: 10px; font-size: 17px; flex-shrink: 0;
+        }
+        .list-view .file-name-col { flex: 2; min-width: 0; }
+        .list-view .file-title {
+            font-weight: 500; font-size: 13px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .list-view .file-details { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--text-muted); flex: 3; }
+        .list-view .file-type-badge {
+            font-size: 11px; padding: 2px 8px;
+            border-radius: 999px; background: #f1f5f9;
+            color: var(--text-muted); font-weight: 500;
+        }
+        .list-view .file-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .list-view .file-actions .btn {
+            font-size: 12px; padding: 4px 10px; border-radius: 7px;
+            border-color: var(--border); color: var(--text-muted);
+        }
+        .list-view .file-actions .btn:hover { color: var(--text); background: #f1f5f9; }
+        .list-view .file-actions .btn.preview-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
+        .list-view .file-actions .btn.delete-btn:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+        @media (max-width: 768px) {
+            .list-view .file-list-item { flex-wrap: wrap; }
+            .list-view .file-details { width: 100%; order: 3; margin-top: 6px; }
+            .list-view .file-actions { width: 100%; order: 4; margin-top: 6px; }
+        }
+        .report-pre {
+            background: #0f172a; color: #e2e8f0;
+            padding: 16px 18px; border-radius: var(--radius);
+            font-size: 12.5px;
+            font-family: "SF Mono", Consolas, "Cascadia Code", "JetBrains Mono", monospace;
+            line-height: 1.7; max-height: 65vh; overflow: auto;
+            white-space: pre-wrap; word-break: break-all; margin: 0;
+        }
+        .modal-content {
+            border: none; border-radius: var(--radius-lg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;
+        }
+        .modal-header { border-bottom: 1px solid var(--border); padding: 16px 20px; }
+        .modal-title { font-size: 15px; font-weight: 600; }
+        .modal-body { padding: 20px; }
+        .modal-footer { border-top: 1px solid var(--border); padding: 12px 20px; background: #fafbfc; }
+        .modal-backdrop.show { opacity: 0.35; }
+        .preview-text {
+            max-height: 70vh; overflow: auto; background: #f8fafc;
+            padding: 16px; border-radius: var(--radius);
+            white-space: pre-wrap; font-family: "SF Mono", Consolas, monospace;
+            font-size: 13px; line-height: 1.6; margin: 0;
+        }
+        .preview-iframe { width: 100%; height: 80vh; border: none; border-radius: var(--radius); background: white; }
+        .preview-media-wrap { text-align: center; background: #0f172a; border-radius: var(--radius); padding: 16px; }
+        .preview-media-wrap video { max-width: 100%; max-height: 80vh; border-radius: 6px; }
+        .preview-media-wrap audio { width: 100%; max-width: 500px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state-icon { font-size: 42px; color: var(--text-faint); margin-bottom: 12px; opacity: 0.6; }
+        .collapse-panel { margin-bottom: 16px; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn { transition: all 0.15s ease; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+        .btn-success { background: var(--success); border-color: var(--success); }
+        .btn-success:hover { background: #059669; border-color: #059669; }
+        .btn-info { background: var(--info); border-color: var(--info); }
+        .btn-info:hover { background: #0284c7; border-color: #0284c7; }
+        .divider-dot { color: var(--text-faint); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .field-error { font-size: 11px; color: var(--danger); margin-top: 3px; display: none; }
+        .field-error.show { display: block; }
+        .badge-direct {
+            font-size: 10px; padding: 1px 6px; border-radius: 999px;
+            background: var(--success-soft); color: var(--success);
+            margin-left: 6px; font-weight: 600;
+        }
+        .log-mode-warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12.5px;
+            color: #78350f;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+        .log-mode-warning ul { margin: 6px 0 0 0; padding-left: 20px; }
+        .log-mode-warning li { margin: 2px 0; }
+        .log-mode-warning code {
+            background: #fef3c7; padding: 1px 5px;
+            border-radius: 4px; font-size: 11.5px; color: #78350f;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="app-nav">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div class="app-brand">
+                <div class="app-brand-logo"><i class="fas fa-cloud"></i></div>
+                <span>网盘管理器</span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-pill btn-success-soft" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <i class="fas fa-sign-in-alt"></i> 登录
+                </button>
+                <button class="btn btn-pill btn-soft" data-bs-toggle="collapse" data-bs-target="#configPanel">
+                    <i class="fas fa-sliders-h"></i> 配置
+                </button>
+                <button class="btn btn-pill btn-primary-soft" data-bs-toggle="collapse" data-bs-target="#uploadPanel">
+                    <i class="fas fa-plus"></i> 上传
+                </button>
+                <button class="btn btn-pill btn-soft btn-icon" id="speedTestBtn" title="测速">
+                    <i class="fas fa-tachometer-alt"></i>
+                </button>
+                <button class="btn btn-pill btn-soft btn-icon" id="refreshBtn" title="刷新">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="segmented">
+                    <button id="gridViewBtn" title="网格视图"><i class="fas fa-th"></i></button>
+                    <button id="listViewBtn" title="列表视图"><i class="fas fa-list"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <div class="collapse collapse-panel" id="configPanel">
+        <div class="surface">
+            <div class="surface-header">
+                <h6 class="surface-title"><i class="fas fa-sliders-h text-primary"></i> 配置</h6>
+                <button class="btn btn-sm btn-primary" id="saveConfigBtn">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+            <div class="surface-body">
+                <div class="config-section-title">
+                    <i class="fas fa-key"></i> API 凭证
+                    <button class="btn btn-sm btn-outline-secondary ms-auto" id="autoDetectBtn"
+                            type="button" title="根据浏览器 UA 自动识别">
+                        <i class="fas fa-magic"></i> 自动检测
+                    </button>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Token</label>
+                        <input type="text" class="form-control form-control-sm" id="token" value="null">
+                        <div class="field-error" id="token-error"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">UID</label>
+                        <input type="text" class="form-control form-control-sm" id="uid" value="null">
+                        <div class="field-error" id="uid-error"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">System</label>
+                        <select class="form-select form-select-sm" id="system">
+                            <option value="windows">windows</option>
+                            <option value="macos">macos</option>
+                            <option value="android">android</option>
+                            <option value="ios">ios</option>
+                            <option value="linux">linux</option>
+                        </select>
+                        <div class="field-error" id="system-error"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Platform</label>
+                        <select class="form-select form-select-sm" id="platform">
+                            <option value="desktop">desktop</option>
+                            <option value="mobile">mobile</option>
+                        </select>
+                        <div class="field-error" id="platform-error"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">上传模式</label>
+                        <select class="form-select form-select-sm" id="modeSelect">
+                            <option value="file">文件模式</option>
+                            <option value="log">日志模式 (⚠️)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="logModeWarning" class="log-mode-warning" style="display:none;">
+                    <strong><i class="fas fa-exclamation-triangle"></i> 日志模式提示</strong>
+                    <ul>
+                        <li>文件会传到 readboy <b>客服反馈系统</b>，不是网盘</li>
+                        <li>扩展名被强制为 <code>.log</code>，存在 <code>app_log_upload/</code> 目录</li>
+                        <li>readboy 客服后台会看到这些记录，<b>别传敏感内容</b></li>
+                        <li>服务端会记录<b>你的服务器公网 IP</b> 和完整业务字段</li>
+                        <li>文件<b>无法删除</b>——没有删除接口</li>
+                        <li><b>Cloudflare Pages 版不支持日志模式</b>（需要 POST 转发）</li>
+                    </ul>
+                </div>
+
+                <div class="config-section-title"><i class="fas fa-tachometer-alt"></i> 测速参数</div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-2">
+                        <label class="form-label">包体大小 (KB)</label>
+                        <input type="number" class="form-control form-control-sm"
+                               id="speedTestSize" value="1024" min="64" max="51200" step="64">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">发送次数</label>
+                        <input type="number" class="form-control form-control-sm"
+                               id="speedTestRounds" value="3" min="1" max="20">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">预热</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="speedTestWarmup" checked>
+                            <label class="form-check-label" style="font-size:13px;" for="speedTestWarmup">
+                                忽略第 1 次（TCP 慢启动）
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-2 align-self-end">
+                        <button class="btn btn-sm btn-info w-100" id="runSpeedTestBtn">
+                            <i class="fas fa-play"></i> 运行测速
+                        </button>
+                    </div>
+                </div>
+                <div class="config-section-title"><i class="fas fa-layer-group"></i> 并发上传</div>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label">并发数</label>
+                        <input type="number" class="form-control form-control-sm"
+                               id="concurrencyInput" value="3" min="1" max="10">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="text-muted" style="font-size:12px;">
+                            大文件建议 1~2；小文件 3~5。选择文件时会按平均大小自动调整。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="collapse collapse-panel" id="uploadPanel">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6" id="normalUploadCol">
+                <div class="surface upload-card h-100">
+                    <div class="surface-header">
+                        <h6 class="surface-title"><i class="fas fa-upload text-primary"></i> 普通上传</h6>
+                        <span class="text-muted" style="font-size:12px;" id="normalFileCount"></span>
+                    </div>
+                    <div class="surface-body">
+                        <label class="upload-zone d-block mb-2" for="localFileInput">
+                            <div class="upload-zone-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <div class="upload-zone-title">点击选择文件</div>
+                            <div class="upload-zone-hint">支持多选 · 走服务器转发</div>
+                            <input type="file" id="localFileInput" multiple>
+                        </label>
+                        <div class="input-group input-group-sm" id="urlUploadGroup">
+                            <span class="input-group-text bg-white"><i class="fas fa-link text-muted"></i></span>
+                            <input type="text" class="form-control" id="urlInput"
+                                   placeholder="或粘贴远程 URL 上传">
+                            <button class="btn btn-primary" id="uploadUrlBtn">上传</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6" id="signUploadCol">
+                <div class="surface upload-card h-100">
+                    <div class="surface-header">
+                        <h6 class="surface-title">
+                            <i class="fas fa-bolt text-success"></i> 签名直传
+                            <span class="badge-direct">推荐大文件</span>
+                        </h6>
+                        <span class="text-muted" style="font-size:12px;" id="signFileCount"></span>
+                    </div>
+                    <div class="surface-body">
+                        <label class="upload-zone d-block mb-2" for="signFileInput">
+                            <div class="upload-zone-icon" style="color: var(--success);">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div class="upload-zone-title">点击选择文件</div>
+                            <div class="upload-zone-hint">浏览器直传 OSS · 真进度 · 不占服务器</div>
+                            <input type="file" id="signFileInput" multiple>
+                        </label>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm"
+                                   id="signTargetName" placeholder="目标文件名（单文件时生效，可留空）">
+                            <button class="btn btn-sm btn-success" id="signUploadBtn" style="white-space:nowrap;">
+                                开始
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="surface collapse-panel" id="uploadQueueCard" style="display:none;">
+            <div class="surface-header queue-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-tasks me-2"></i>
+                    <span style="font-weight:600;">上传队列</span>
+                    <span class="queue-stats-badge" id="queueStats"></span>
+                </div>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-light" id="queuePauseBtn" style="font-size:12px;">
+                        <i class="fas fa-pause"></i> 暂停
+                    </button>
+                    <button class="btn btn-sm btn-light" id="queueCancelAllBtn" style="font-size:12px;">
+                        <i class="fas fa-stop"></i> 全部取消
+                    </button>
+                    <button class="btn btn-sm btn-light" id="queueClearBtn" style="font-size:12px;">
+                        <i class="fas fa-broom"></i> 清理
+                    </button>
+                </div>
+            </div>
+            <div id="queueList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="segmented">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="image"><i class="fas fa-image"></i> 图片</button>
+            <button class="filter-btn" data-filter="video"><i class="fas fa-video"></i> 视频</button>
+            <button class="filter-btn" data-filter="audio"><i class="fas fa-music"></i> 音频</button>
+            <button class="filter-btn" data-filter="document"><i class="fas fa-file-alt"></i> 文档</button>
+            <button class="filter-btn" data-filter="other"><i class="fas fa-file"></i> 其他</button>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="form-control form-control-sm" id="searchInput"
+                       placeholder="搜索文件名...">
+            </div>
+            <button class="btn btn-sm btn-outline-danger btn-icon" id="clearAllHistoryBtn" title="清空历史">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="fileContainer" class="grid-view">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-spinner fa-spin"></i></div>
+            <div>加载中...</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewTitle">预览</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="previewBody"></div>
+            <div class="modal-footer">
+                <a href="#" id="downloadLink" class="btn btn-primary btn-sm" target="_blank">
+                    <i class="fas fa-download"></i> 下载原文件
+                </a>
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="speedReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tachometer-alt text-primary me-2"></i>测速报告</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="speedReportContent" class="report-pre"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light btn-sm" id="copySpeedReportBtn">
+                    <i class="fas fa-copy"></i> 复制
+                </button>
+                <button class="btn btn-primary btn-sm" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-sign-in-alt text-success me-2"></i>账号登录</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">账号</label>
+                    <input type="text" class="form-control" id="loginAccount" placeholder="请输入账号">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="loginAsStudent" checked>
+                    <label class="form-check-label" style="font-size:13px;" for="loginAsStudent">
+                        学生账号 (userType=1)
+                    </label>
+                </div>
+                <div id="loginError" class="text-danger mt-3" style="display:none; font-size:13px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary btn-sm" id="doLoginBtn">登录</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ============================================================
+   全局状态
+   ============================================================ */
+let allFiles = [];
+let currentFilter = 'all';
+let searchKeyword = '';
+let currentView = 'grid';
+let speedCache = { browser: null, readboy: null, e2e: null };
+
+let capabilities = {
+    sign_direct: true,
+    speedtest: true,
+    login: true,
+    history: true,
+    config: true,
+    upload: true,
+    sign_upload: true,
+    url_upload: true,
+    speedtest_e2e: true,
+    log_mode: true,
+};
+
+/* ============================================================
+   DOM 引用
+   ============================================================ */
+const fileContainer = document.getElementById('fileContainer');
+const filterBtns = document.querySelectorAll('.filter-btn');
+const searchInput = document.getElementById('searchInput');
+const refreshBtn = document.getElementById('refreshBtn');
+const clearAllHistoryBtn = document.getElementById('clearAllHistoryBtn');
+const localFileInput = document.getElementById('localFileInput');
+const uploadUrlBtn = document.getElementById('uploadUrlBtn');
+const urlInput = document.getElementById('urlInput');
+const saveConfigBtn = document.getElementById('saveConfigBtn');
+const autoDetectBtn = document.getElementById('autoDetectBtn');
+const tokenInput = document.getElementById('token');
+const uidInput = document.getElementById('uid');
+const systemInput = document.getElementById('system');
+const platformInput = document.getElementById('platform');
+const modeSelect = document.getElementById('modeSelect');
+const logModeWarning = document.getElementById('logModeWarning');
+const gridViewBtn = document.getElementById('gridViewBtn');
+const listViewBtn = document.getElementById('listViewBtn');
+const signFileInput = document.getElementById('signFileInput');
+const signTargetName = document.getElementById('signTargetName');
+const signUploadBtn = document.getElementById('signUploadBtn');
+const doLoginBtn = document.getElementById('doLoginBtn');
+const normalFileCount = document.getElementById('normalFileCount');
+const signFileCount = document.getElementById('signFileCount');
+const speedTestBtn = document.getElementById('speedTestBtn');
+const runSpeedTestBtn = document.getElementById('runSpeedTestBtn');
+const speedTestSizeInput = document.getElementById('speedTestSize');
+const speedTestRoundsInput = document.getElementById('speedTestRounds');
+const speedTestWarmupInput = document.getElementById('speedTestWarmup');
+const concurrencyInput = document.getElementById('concurrencyInput');
+const normalUploadCol = document.getElementById('normalUploadCol');
+const signUploadCol = document.getElementById('signUploadCol');
+const urlUploadGroup = document.getElementById('urlUploadGroup');
+
+/* ============================================================
+   能力探测
+   ============================================================ */
+async function detectCapabilities() {
+    try {
+        const resp = await fetch('/api/capabilities');
+        if (resp.ok) {
+            const data = await resp.json();
+            capabilities = { ...capabilities, ...data };
+            console.log('[capabilities]', capabilities);
+        }
+    } catch (e) {
+        console.warn('[capabilities] 探测失败，使用默认（全部支持）', e);
+    }
+    applyCapabilities();
+}
+
+function applyCapabilities() {
+    // 1. 不支持普通上传 → 隐藏普通上传卡片，签名直传占满宽度
+    if (!capabilities.upload) {
+        if (normalUploadCol) normalUploadCol.style.display = 'none';
+        if (signUploadCol) {
+            signUploadCol.classList.remove('col-md-6');
+            signUploadCol.classList.add('col-12');
+        }
+    }
+
+    // 2. 不支持 log 模式 → 移除 log 选项
+    if (!capabilities.log_mode) {
+        const opt = modeSelect?.querySelector('option[value="log"]');
+        if (opt) opt.remove();
+        if (logModeWarning) logModeWarning.style.display = 'none';
+    }
+
+    // 3. 不支持测速 → 隐藏测速按钮
+    if (!capabilities.speedtest && !capabilities.speedtest_e2e) {
+        if (speedTestBtn) speedTestBtn.style.display = 'none';
+        if (runSpeedTestBtn) runSpeedTestBtn.closest('.col-md-2')?.style.display = 'none';
+    }
+
+    // 4. 不支持 URL 上传 → 隐藏 URL 输入框
+    if (!capabilities.url_upload) {
+        if (urlUploadGroup) urlUploadGroup.style.display = 'none';
+    }
+}
+
+/* ============================================================
+   自动检测 system / platform
+   ============================================================ */
+function detectSystemPlatform() {
+    const ua = (navigator.userAgent || '').toLowerCase();
+    let system = 'windows';
+    if (/windows|win32|win64|wow32|wow64/.test(ua)) system = 'windows';
+    else if (/macintosh|macintel/.test(ua)) system = 'macos';
+    else if (/android|adr/.test(ua)) system = 'android';
+    else if (/ios|iphone|ipad|ipod|iwatch/.test(ua)) system = 'ios';
+    else if (/linux/.test(ua)) system = 'linux';
+
+    let platform = 'desktop';
+    if (system === 'android' || system === 'ios' || /mobile/.test(ua)) {
+        platform = 'mobile';
+    }
+    return { system, platform };
+}
+
+/* ============================================================
+   日志模式警告 / 确认
+   ============================================================ */
+function syncLogModeWarning() {
+    if (!logModeWarning) return;
+    if (!capabilities.log_mode) {
+        logModeWarning.style.display = 'none';
+        return;
+    }
+    logModeWarning.style.display = modeSelect.value === 'log' ? 'block' : 'none';
+}
+
+async function confirmLogMode() {
+    if (modeSelect.value !== 'log') return true;
+    return confirm(
+        '⚠️ 你选择了「日志模式」\n\n' +
+        '• 文件会传到 readboy 客服反馈系统，不是网盘\n' +
+        '• 扩展名强制为 .log\n' +
+        '• 客服后台可见，别传敏感内容\n' +
+        '• 无法删除\n' +
+        '• 会记录你的服务器 IP\n\n' +
+        '确认继续上传？'
+    );
+}
+
+modeSelect.addEventListener('change', syncLogModeWarning);
+
+/* ============================================================
+   辅助函数
+   ============================================================ */
+function getFileType(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) return 'image';
+    if (['mp4','webm','mov','avi','mkv','flv','m4v','mpg','mpeg'].includes(ext)) return 'video';
+    if (['mp3','wav','ogg','m4a','flac','aac','ape'].includes(ext)) return 'audio';
+    if (['pdf','txt'].includes(ext)) return 'document';
+    return 'other';
+}
+
+function getPreviewType(fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) return 'image';
+    if (['mp4','webm','mov','avi','mkv','flv','m4v','mpg','mpeg'].includes(ext)) return 'video';
+    if (['mp3','wav','ogg','m4a','flac','aac'].includes(ext)) return 'audio';
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'txt') return 'text';
+    return 'unsupported';
+}
+
+function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B','KB','MB','GB','TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function formatMBps(bytesPerMs) {
+    if (!bytesPerMs || bytesPerMs <= 0 || !isFinite(bytesPerMs)) return '--';
+    return (bytesPerMs * 1000 / 1048576).toFixed(2) + ' MB/s';
+}
+
+function formatSpeed(bytesPerSec) {
+    if (!bytesPerSec || bytesPerSec <= 0 || !isFinite(bytesPerSec)) return '';
+    return (bytesPerSec / 1048576).toFixed(2) + ' MB/s';
+}
+
+function formatTime(iso) {
+    try {
+        const d = new Date(iso);
+        const now = new Date();
+        const diff = (now - d) / 1000;
+        if (diff < 60) return '刚刚';
+        if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+        if (diff < 7 * 86400) return Math.floor(diff / 86400) + ' 天前';
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    } catch { return iso; }
+}
+
+function getFileIcon(fileName, type) {
+    if (type === 'image') return '<i class="fas fa-image"></i>';
+    if (type === 'video') return '<i class="fas fa-video"></i>';
+    if (type === 'audio') return '<i class="fas fa-music"></i>';
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (ext === 'pdf') return '<i class="fas fa-file-pdf"></i>';
+    if (ext === 'txt') return '<i class="fas fa-file-alt"></i>';
+    if (['zip','rar','7z','tar','gz'].includes(ext)) return '<i class="fas fa-file-archive"></i>';
+    if (['doc','docx'].includes(ext)) return '<i class="fas fa-file-word"></i>';
+    if (['xls','xlsx'].includes(ext)) return '<i class="fas fa-file-excel"></i>';
+    if (['ppt','pptx'].includes(ext)) return '<i class="fas fa-file-powerpoint"></i>';
+    if (['js','ts','py','java','c','cpp','go','rs','php','html','css'].includes(ext)) return '<i class="fas fa-file-code"></i>';
+    return '<i class="fas fa-file"></i>';
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[m]));
+}
+
+function cleanPreviewModal() {
+    const previewBody = document.getElementById('previewBody');
+    if (!previewBody) return;
+    const media = previewBody.querySelectorAll('video, audio');
+    media.forEach(m => { m.pause(); m.src = ''; m.load(); });
+}
+
+async function showPreview(url, name, previewType) {
+    const modalElement = document.getElementById('previewModal');
+    const modal = new bootstrap.Modal(modalElement);
+    const previewTitle = document.getElementById('previewTitle');
+    const previewBody = document.getElementById('previewBody');
+    const downloadLink = document.getElementById('downloadLink');
+    previewTitle.innerText = name || '预览';
+    downloadLink.href = url || '#';
+    previewBody.innerHTML = '';
+    if (!url || url === '#') {
+        previewBody.innerHTML = `<div class="alert alert-warning">无效的预览链接</div>`;
+        modal.show();
+        return;
+    }
+    if (previewType === 'image') {
+        previewBody.innerHTML = `<div class="text-center"><img src="${url}" alt="${escapeHtml(name)}" style="max-width:100%; max-height:80vh; border-radius:8px;" onerror="this.src='https://placehold.co/800x400?text=图片加载失败'"></div>`;
+    } else if (previewType === 'video') {
+        previewBody.innerHTML = `<div class="preview-media-wrap"><video controls autoplay><source src="${url}">不支持视频</video></div>`;
+    } else if (previewType === 'audio') {
+        previewBody.innerHTML = `<div class="preview-media-wrap" style="background: linear-gradient(135deg,#1e293b,#0f172a); padding: 40px 20px;"><audio controls autoplay><source src="${url}">不支持音频</audio></div>`;
+    } else if (previewType === 'pdf') {
+        previewBody.innerHTML = `<iframe class="preview-iframe" src="${url}"></iframe>`;
+    } else if (previewType === 'text') {
+        previewBody.innerHTML = `<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x text-muted"></i></div>`;
+        modal.show();
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+            previewBody.innerHTML = `<pre class="preview-text">${escapeHtml(text)}</pre>`;
+        } catch (err) {
+            previewBody.innerHTML = `<div class="alert alert-danger">文本加载失败: ${err.message}</div>`;
+        }
+        return;
+    } else {
+        previewBody.innerHTML = `<div class="alert alert-info">无法在线预览，请点击下载按钮。</div>`;
+    }
+    modal.show();
+}
+
+/* ============================================================
+   参数错误提示
+   ============================================================ */
+function clearFieldErrors() {
+    document.querySelectorAll('.field-error').forEach(el => {
+        el.classList.remove('show');
+        el.textContent = '';
+    });
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+}
+
+function showFieldError(field, message) {
+    if (!field) { alert(message); return; }
+    const input = document.getElementById(field);
+    const errorEl = document.getElementById(field + '-error');
+    if (input) input.classList.add('is-invalid');
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+    } else {
+        alert(`[${field}] ${message}`);
+    }
+}
+
+/* ============================================================
+   渲染
+   ============================================================ */
+function renderGridView(filtered) {
+    if (filtered.length === 0) {
+        fileContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                <div>暂无文件</div>
+                <div class="mt-2" style="font-size:12px;">点击上方"上传"按钮开始</div>
+            </div>
+        `;
+        return;
+    }
+    let html = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">`;
+    filtered.forEach(item => {
+        const type = getFileType(item.file_name);
+        const previewType = getPreviewType(item.file_name);
+        const iconHtml = getFileIcon(item.file_name, type);
+        const fileSize = formatBytes(item.file_size);
+        const uploadTime = formatTime(item.upload_time);
+        let thumbContent = `<div class="file-thumb-icon">${iconHtml}</div>`;
+        if (type === 'image') {
+            thumbContent = `<img src="${item.remote_url}" alt="" onerror="this.outerHTML='<div class=&quot;file-thumb-icon&quot;>${iconHtml.replace(/"/g, '&quot;')}</div>';">`;
+        }
+        html += `
+            <div class="col">
+                <div class="file-card" data-url="${item.remote_url}" data-name="${escapeHtml(item.file_name)}" data-preview-type="${previewType}">
+                    <div class="file-thumb">${thumbContent}</div>
+                    <div class="file-card-body">
+                        <div class="file-card-name" title="${escapeHtml(item.file_name)}">${escapeHtml(item.file_name)}</div>
+                        <div class="file-card-meta">
+                            <span>${fileSize}</span>
+                            <span class="divider-dot">·</span>
+                            <span>${uploadTime}</span>
+                        </div>
+                    </div>
+                    <div class="file-card-actions">
+                        <button class="btn btn-sm preview-btn"><i class="fas fa-eye"></i> 预览</button>
+                        <button class="btn btn-sm copy-btn" data-url="${item.remote_url}"><i class="fas fa-link"></i></button>
+                        <button class="btn btn-sm delete-btn" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    fileContainer.innerHTML = html;
+    attachFileEvents();
+}
+
+function renderListView(filtered) {
+    if (filtered.length === 0) {
+        fileContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+                <div>暂无文件</div>
+            </div>
+        `;
+        return;
+    }
+    let html = `<div class="list-view">`;
+    filtered.forEach(item => {
+        const type = getFileType(item.file_name);
+        const previewType = getPreviewType(item.file_name);
+        const smallIcon = getFileIcon(item.file_name, type);
+        const fileSize = formatBytes(item.file_size);
+        const uploadTime = formatTime(item.upload_time);
+        const typeLabel = type === 'image' ? '图片' : type === 'video' ? '视频' : type === 'audio' ? '音频' : type === 'document' ? '文档' : '其他';
+        html += `
+            <div class="file-list-item" data-url="${item.remote_url}" data-name="${escapeHtml(item.file_name)}" data-preview-type="${previewType}">
+                <div class="file-icon-small">${smallIcon}</div>
+                <div class="file-name-col">
+                    <div class="file-title" title="${escapeHtml(item.file_name)}">${escapeHtml(item.file_name)}</div>
+                </div>
+                <div class="file-details">
+                    <span class="file-type-badge">${typeLabel}</span>
+                    <span>${fileSize}</span>
+                    <span>${uploadTime}</span>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-sm preview-btn"><i class="fas fa-eye"></i> 预览</button>
+                    <button class="btn btn-sm copy-btn" data-url="${item.remote_url}"><i class="fas fa-link"></i></button>
+                    <button class="btn btn-sm delete-btn" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    fileContainer.innerHTML = html;
+    attachFileEvents();
+}
+
+function attachFileEvents() {
+    document.querySelectorAll('#fileContainer .preview-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const card = btn.closest('[data-url]');
+            showPreview(card.dataset.url, card.dataset.name, card.dataset.previewType);
+        });
+    });
+    document.querySelectorAll('#fileContainer .copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(btn.dataset.url);
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+            setTimeout(() => { btn.innerHTML = orig; }, 1200);
+        });
+    });
+    document.querySelectorAll('#fileContainer .delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.id;
+            if (confirm('删除该记录？')) {
+                if (id) await fetch(`/api/history/${id}`, { method: 'DELETE' });
+                await loadHistory();
+            }
+        });
+    });
+    document.querySelectorAll('#fileContainer .file-card, #fileContainer .file-list-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            showPreview(el.dataset.url, el.dataset.name, el.dataset.previewType);
+        });
+    });
+}
+
+function render() {
+    let filtered = allFiles;
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(f => getFileType(f.file_name) === currentFilter);
+    }
+    if (searchKeyword.trim() !== '') {
+        const kw = searchKeyword.trim().toLowerCase();
+        filtered = filtered.filter(f => f.file_name.toLowerCase().includes(kw));
+    }
+    if (currentView === 'grid') {
+        fileContainer.className = 'grid-view';
+        renderGridView(filtered);
+    } else {
+        fileContainer.className = 'list-view';
+        renderListView(filtered);
+    }
+}
+
+async function loadHistory() {
+    try {
+        const resp = await fetch('/api/history');
+        allFiles = await resp.json();
+        render();
+    } catch (err) {
+        console.error(err);
+        fileContainer.innerHTML = `<div class="empty-state text-danger">加载失败，请刷新重试</div>`;
+    }
+}
+
+/* ============================================================
+   配置
+   ============================================================ */
+async function loadConfig() {
+    try {
+        const resp = await fetch('/api/config');
+        const cfg = await resp.json();
+        tokenInput.value = cfg.token !== undefined ? cfg.token : 'null';
+        uidInput.value = cfg.uid !== undefined ? cfg.uid : 'null';
+
+        const validSystems = ['windows', 'macos', 'android', 'ios', 'linux'];
+        const validPlatforms = ['desktop', 'mobile'];
+
+        if (cfg.system && validSystems.includes(cfg.system)) {
+            systemInput.value = cfg.system;
+        } else {
+            systemInput.value = detectSystemPlatform().system;
+        }
+
+        if (cfg.platform && validPlatforms.includes(cfg.platform)) {
+            platformInput.value = cfg.platform;
+        } else {
+            platformInput.value = detectSystemPlatform().platform;
+        }
+
+        modeSelect.value = cfg.mode !== undefined ? cfg.mode : 'file';
+        if (cfg.speedTestSize !== undefined) speedTestSizeInput.value = cfg.speedTestSize;
+        if (cfg.speedTestRounds !== undefined) speedTestRoundsInput.value = cfg.speedTestRounds;
+        if (cfg.speedTestWarmup !== undefined) {
+            speedTestWarmupInput.checked = String(cfg.speedTestWarmup) === '1'
+                || String(cfg.speedTestWarmup) === 'true';
+        }
+        if (cfg.concurrency !== undefined) concurrencyInput.value = cfg.concurrency;
+
+        syncLogModeWarning();
+    } catch(e) { console.error(e); }
+}
+
+async function saveConfig() {
+    clearFieldErrors();
+    const config = {
+        token: tokenInput.value,
+        uid: uidInput.value,
+        system: systemInput.value,
+        platform: platformInput.value,
+        mode: modeSelect.value,
+        speedTestSize: speedTestSizeInput.value,
+        speedTestRounds: speedTestRoundsInput.value,
+        speedTestWarmup: speedTestWarmupInput.checked ? '1' : '0',
+        concurrency: concurrencyInput.value,
+    };
+    const resp = await fetch('/api/config', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(config)
+    });
+    const data = await resp.json();
+    if (data.warnings && data.warnings.length > 0) {
+        await loadConfig();
+        return { warnings: data.warnings };
+    }
+    return data;
+}
+
+saveConfigBtn.onclick = async () => {
+    const result = await saveConfig();
+    if (result.warnings) {
+        alert('配置已保存，但有以下修正：\n\n' + result.warnings.join('\n'));
+    } else {
+        alert('配置已保存');
+    }
+    const c = parseInt(concurrencyInput.value);
+    if (isFinite(c) && c >= 1 && c <= 10) {
+        queue.concurrency = c;
+        queue.tick();
+    }
+};
+
+autoDetectBtn.onclick = () => {
+    const detected = detectSystemPlatform();
+    systemInput.value = detected.system;
+    platformInput.value = detected.platform;
+    alert(`检测结果：\n\nSystem: ${detected.system}\nPlatform: ${detected.platform}\n\n点击"保存"生效`);
+};
+
+/* ============================================================
+   测速模块
+   ============================================================ */
+function readSpeedTestParams() {
+    let sizeKB = parseInt(speedTestSizeInput.value);
+    if (!isFinite(sizeKB) || sizeKB < 64) sizeKB = 1024;
+    if (sizeKB > 51200) sizeKB = 51200;
+    let rounds = parseInt(speedTestRoundsInput.value);
+    if (!isFinite(rounds) || rounds < 1) rounds = 3;
+    if (rounds > 20) rounds = 20;
+    const skipWarmup = speedTestWarmupInput.checked;
+    return { sizeBytes: sizeKB * 1024, sizeKB, rounds, skipWarmup };
+}
+
+async function measureBrowserOnce(sizeBytes) {
+    const blob = new Blob([new Uint8Array(sizeBytes)], { type: 'application/octet-stream' });
+    const t0 = performance.now();
+    const resp = await fetch('/api/speedtest', {
+        method: 'POST',
+        body: blob,
+        headers: { 'Content-Type': 'application/octet-stream' }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    await resp.json();
+    const elapsed = performance.now() - t0;
+    return { size: sizeBytes, elapsed_ms: elapsed, speed: sizeBytes / Math.max(elapsed, 1) };
+}
+
+async function measureBrowserSpeedMulti(sizeBytes, rounds, skipWarmup) {
+    const totalRounds = rounds + (skipWarmup ? 1 : 0);
+    const results = [];
+    for (let i = 0; i < totalRounds; i++) {
+        const isWarmup = skipWarmup && i === 0;
+        const tag = isWarmup ? '预热' : `第 ${i - (skipWarmup ? 1 : 0) + 1}/${rounds}`;
+        let r;
+        try { r = await measureBrowserOnce(sizeBytes); }
+        catch (e) { console.warn(`[测速] ${tag} 失败`, e); continue; }
+        r.round = i + 1; r.warmup = isWarmup; r.tag = tag;
+        results.push(r);
+    }
+    const used = results.filter(r => !r.warmup && isFinite(r.speed) && r.speed > 0);
+    if (used.length === 0) throw new Error('所有测速样本都失败了');
+    const totalBytes = used.reduce((s, r) => s + r.size, 0);
+    const totalMs = used.reduce((s, r) => s + r.elapsed_ms, 0);
+    const sorted = used.map(r => r.speed).sort((a, b) => a - b);
+    const median = sorted.length % 2 === 1
+        ? sorted[Math.floor(sorted.length / 2)]
+        : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+    return {
+        avg_speed: totalBytes / totalMs,
+        median_speed: median,
+        min_speed: sorted[0],
+        max_speed: sorted[sorted.length - 1],
+        samples: results,
+    };
+}
+
+async function measureEndToEndOnce(sizeBytes) {
+    const blob = new Blob([new Uint8Array(sizeBytes)]);
+    const fd = new FormData();
+    fd.append('file', blob, 'speedtest.bin');
+    fd.append('mode', modeSelect.value);
+    fd.append('token', tokenInput.value);
+    fd.append('uid', uidInput.value);
+    fd.append('system', systemInput.value);
+    fd.append('platform', platformInput.value);
+    const t0 = performance.now();
+    let data = {};
+    try {
+        const resp = await fetch('/api/speedtest_e2e', { method: 'POST', body: fd });
+        data = await resp.json();
+    } catch (e) { console.warn('[测速] 端到端失败', e); }
+    const total = performance.now() - t0;
+    const forwardMs = data.forward_ms || 0;
+    const browserMs = Math.max(total - forwardMs, 1);
+    return {
+        browser_speed: sizeBytes / browserMs,
+        readboy_speed: forwardMs > 0 ? sizeBytes / forwardMs : null,
+        e2e_speed: sizeBytes / total,
+        total_ms: total,
+        forward_ms: forwardMs,
+    };
+}
+
+async function runFullSpeedTest() {
+    const { sizeBytes, sizeKB, rounds, skipWarmup } = readSpeedTestParams();
+    const browserResult = await measureBrowserSpeedMulti(sizeBytes, rounds, skipWarmup);
+    let e2eResult = null;
+    if (capabilities.speedtest_e2e) {
+        try { e2eResult = await measureEndToEndOnce(sizeBytes); }
+        catch (e) { console.warn('[测速] 端到端失败', e); }
+    }
+    speedCache.browser = browserResult.avg_speed;
+    speedCache.readboy = e2eResult ? e2eResult.readboy_speed : null;
+    speedCache.e2e = e2eResult ? e2eResult.e2e_speed : null;
+    return { params: { sizeKB, rounds, skipWarmup }, browser: browserResult, e2e: e2eResult };
+}
+
+function formatSpeedTestReport(result) {
+    const { params, browser, e2e } = result;
+    const lines = [];
+    lines.push(`📊 测速报告`);
+    lines.push(`包体：${params.sizeKB} KB/次  ·  次数：${params.rounds}` +
+               (params.skipWarmup ? '  ·  已忽略首次' : ''));
+    lines.push('');
+    lines.push(`【浏览器 → Worker】`);
+    browser.samples.forEach(r => {
+        lines.push(`  ${r.tag}${r.warmup ? ' (预热)' : ''}: ${r.elapsed_ms.toFixed(0)} ms  →  ${formatMBps(r.speed)}`);
+    });
+    lines.push(`  ─────────────`);
+    lines.push(`  平均：${formatMBps(browser.avg_speed)}`);
+    lines.push(`  中位：${formatMBps(browser.median_speed)}`);
+    lines.push(`  范围：${formatMBps(browser.min_speed)} ~ ${formatMBps(browser.max_speed)}`);
+    lines.push('');
+    if (e2e) {
+        lines.push(`【端到端（含 readboy 转发）】`);
+        lines.push(`  总耗时：${e2e.total_ms.toFixed(0)} ms (转发 ${e2e.forward_ms.toFixed(0)} ms)`);
+        lines.push(`  Flask→readboy：${formatMBps(e2e.readboy_speed)}`);
+        lines.push(`  端到端有效速度：${formatMBps(e2e.e2e_speed)}`);
+    } else if (!capabilities.speedtest_e2e) {
+        lines.push(`【端到端】当前环境不支持（Cloudflare Workers 无后端转发）`);
+    } else {
+        lines.push(`【端到端】测速失败`);
+    }
+    return lines.join('\n');
+}
+
+function showSpeedReport(text) {
+    document.getElementById('speedReportContent').textContent = text;
+    new bootstrap.Modal(document.getElementById('speedReportModal')).show();
+}
+
+async function runSpeedTestAndReport(button) {
+    const orig = button ? button.innerHTML : null;
+    if (button) { button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+    speedCache = { browser: null, readboy: null, e2e: null };
+    try {
+        const result = await runFullSpeedTest();
+        showSpeedReport(formatSpeedTestReport(result));
+    } catch (e) {
+        alert('测速失败：' + e.message);
+    } finally {
+        if (button) { button.disabled = false; button.innerHTML = orig; }
+    }
+}
+
+speedTestBtn.addEventListener('click', () => runSpeedTestAndReport(speedTestBtn));
+runSpeedTestBtn.addEventListener('click', () => runSpeedTestAndReport(runSpeedTestBtn));
+
+/* ============================================================
+   前端直传 OSS（真进度 + Cache-Control）
+   ============================================================ */
+async function putToOssDirect(file, targetName, { onProgress, signal } = {}) {
+    const sigResp = await fetch('/api/get_sign_url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            token: tokenInput.value,
+            uid: uidInput.value,
+            system: systemInput.value,
+            platform: platformInput.value,
+            file_name: targetName || file.name,
+        }),
+    });
+    const sigData = await sigResp.json();
+    if (!sigData.sign_url) {
+        throw new Error(sigData.error || '签名失败');
+    }
+
+    const blob = file.slice(0, file.size, sigData.content_type);
+
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', sigData.sign_url);
+        xhr.setRequestHeader('Content-Type', sigData.content_type);
+        xhr.setRequestHeader('Cache-Control', 'public, max-age=31536000, immutable');
+
+        if (onProgress && xhr.upload) {
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    onProgress({
+                        loaded: e.loaded,
+                        total: e.total,
+                        percent: e.loaded / e.total,
+                    });
+                }
+            };
+        }
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve({
+                    success: true,
+                    remote_url: sigData.permanent_url,
+                    etag: xhr.getResponseHeader('ETag'),
+                });
+            } else {
+                let msg = `OSS PUT HTTP ${xhr.status}`;
+                const body = xhr.responseText;
+                if (body) msg += ': ' + body.slice(0, 200);
+                reject(new Error(msg));
+            }
+        };
+
+        xhr.onerror = () => reject(new Error('网络错误（可能被 CORS 拦截）'));
+        xhr.onabort = () => {
+            const err = new Error('已取消');
+            err.cancelled = true;
+            reject(err);
+        };
+
+        if (signal) {
+            if (signal.aborted) { reject(new Error('已取消')); return; }
+            signal.addEventListener('abort', () => xhr.abort());
+        }
+
+        xhr.send(blob);
+    });
+}
+
+async function recordHistory(file_name, remote_url, file_size, mode) {
+    try {
+        await fetch('/api/record_history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                file_name, remote_url, file_size,
+                mode: mode || 'sign_upload',
+            }),
+        });
+    } catch (e) {
+        console.warn('[record_history] 失败', e);
+    }
+}
+
+/* ============================================================
+   普通上传：XHR 真进度（浏览器 → Flask/Worker）
+   ============================================================ */
+function xhrUpload(url, formData, task, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        task.xhr = xhr;
+        xhr.open('POST', url);
+
+        if (onProgress && xhr.upload) {
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    onProgress({
+                        loaded: e.loaded,
+                        total: e.total,
+                        percent: e.loaded / e.total,
+                    });
+                }
+            };
+        }
+
+        xhr.onload = () => {
+            task.xhr = null;
+            let body;
+            try { body = JSON.parse(xhr.responseText); }
+            catch (e) { reject(new Error('解析响应失败: ' + e.message)); return; }
+
+            if (xhr.status === 200) {
+                resolve(body);
+            } else if (xhr.status === 400 && body.field) {
+                const err = new Error(`参数错误 [${body.field}]: ${body.error || ''}`);
+                err.field = body.field;
+                err.status = 400;
+                reject(err);
+            } else {
+                const msg = body.error || body.detail || `HTTP ${xhr.status}`;
+                const err = new Error(msg);
+                err.status = xhr.status;
+                err.body = body;
+                reject(err);
+            }
+        };
+
+        xhr.onerror = () => { task.xhr = null; reject(new Error('网络错误')); };
+        xhr.onabort = () => {
+            task.xhr = null;
+            const err = new Error('已取消');
+            err.cancelled = true;
+            reject(err);
+        };
+
+        if (task.abortController) {
+            const sig = task.abortController.signal;
+            if (sig.aborted) { reject(new Error('已取消')); return; }
+            sig.addEventListener('abort', () => xhr.abort());
+        }
+
+        xhr.send(formData);
+    });
+}
+
+/* ============================================================
+   上传执行器
+   ============================================================ */
+async function performUpload(task, onProgress) {
+    if (task.mode === 'normal') {
+        if (!capabilities.upload) {
+            return { success: false, error: '当前环境不支持普通上传' };
+        }
+        const formData = new FormData();
+        formData.append('mode', modeSelect.value);
+        formData.append('token', tokenInput.value);
+        formData.append('uid', uidInput.value);
+        formData.append('system', systemInput.value);
+        formData.append('platform', platformInput.value);
+        formData.append('file', task.file);
+
+        const resp = await xhrUpload('/api/upload', formData, task, onProgress);
+        if (resp.success) {
+            return { success: true, remote_url: resp.remote_url };
+        }
+        return { success: false, error: resp.error || '上传失败' };
+
+    } else if (task.mode === 'sign') {
+        if (!capabilities.sign_direct) {
+            return { success: false, error: '当前环境不支持签名直传' };
+        }
+        const result = await putToOssDirect(
+            task.file,
+            task.targetName || task.file.name,
+            {
+                onProgress: onProgress,
+                signal: task.abortController ? task.abortController.signal : undefined,
+            }
+        );
+
+        if (result.success) {
+            await recordHistory(
+                task.file.name,
+                result.remote_url,
+                task.file.size,
+                'sign_upload'
+            );
+            return { success: true, remote_url: result.remote_url };
+        }
+        return { success: false, error: '上传失败' };
+    }
+
+    return { success: false, error: '未知模式' };
+}
+
+/* ============================================================
+   上传队列
+   ============================================================ */
+class UploadQueue {
+    constructor(opts = {}) {
+        this.concurrency = opts.concurrency || 3;
+        this.tasks = [];
+        this.running = 0;
+        this.paused = false;
+        this.onUpdate = opts.onUpdate || (() => {});
+        this.doUpload = opts.doUpload;
+        this._finishedNotified = false;
+    }
+
+    add(files, mode, getTargetName) {
+        const ids = [];
+        for (const file of files) {
+            const task = {
+                id: 't_' + Math.random().toString(36).slice(2) + Date.now().toString(36),
+                file,
+                file_name: file.name,
+                file_size: file.size,
+                mode,
+                targetName: getTargetName ? getTargetName(file) : file.name,
+                status: 'pending',
+                progress: 0,
+                loaded: 0,
+                rate: 0,
+                result: null,
+                error: null,
+                xhr: null,
+                abortController: null,
+                startTime: null,
+                endTime: null,
+                _lastTickTime: 0,
+                _lastTickLoaded: 0,
+            };
+            this.tasks.push(task);
+            ids.push(task.id);
+        }
+        this._finishedNotified = false;
+        this.onUpdate();
+        this.tick();
+        return ids;
+    }
+
+    get stats() {
+        const s = { total: this.tasks.length, pending: 0, uploading: 0, done: 0, failed: 0, cancelled: 0 };
+        for (const t of this.tasks) if (t.status in s) s[t.status]++;
+        return s;
+    }
+
+    tick() {
+        if (this.paused) return;
+        while (this.running < this.concurrency) {
+            const next = this.tasks.find(t => t.status === 'pending');
+            if (!next) break;
+            this._run(next);
+        }
+    }
+
+    async _run(task) {
+        this.running++;
+        task.status = 'uploading';
+        task.startTime = performance.now();
+        task.xhr = null;
+        task.abortController = new AbortController();
+        task.progress = 0;
+        task.loaded = 0;
+        task.rate = 0;
+        task._lastTickTime = task.startTime;
+        task._lastTickLoaded = 0;
+        this.onUpdate();
+
+        const onProgress = (p) => {
+            if (task.status !== 'uploading') return;
+            task.progress = Math.min(p.percent * 0.999, 0.999);
+            task.loaded = p.loaded;
+            const now = performance.now();
+            const dt = now - task._lastTickTime;
+            if (dt >= 500) {
+                const dBytes = p.loaded - task._lastTickLoaded;
+                const instant = dBytes / (dt / 1000);
+                task.rate = task.rate > 0 ? task.rate * 0.6 + instant * 0.4 : instant;
+                task._lastTickTime = now;
+                task._lastTickLoaded = p.loaded;
+            }
+            this.onUpdate();
+        };
+
+        try {
+            const result = await this.doUpload(task, onProgress);
+            task.progress = 1;
+            task.loaded = task.file_size;
+            if (result && result.success) {
+                task.status = 'done';
+                task.result = result;
+            } else {
+                task.status = 'failed';
+                task.error = (result && result.error) || '上传失败';
+            }
+        } catch (e) {
+            if (e && e.cancelled) {
+                task.status = 'cancelled';
+                task.error = '已取消';
+            } else {
+                task.status = 'failed';
+                task.error = (e && e.message) || '网络错误';
+            }
+        } finally {
+            task.endTime = performance.now();
+            task.xhr = null;
+            this.running--;
+            this.onUpdate();
+            this.tick();
+            this._maybeNotifyFinished();
+        }
+    }
+
+    _maybeNotifyFinished() {
+        if (this._finishedNotified) return;
+        const unfinished = this.tasks.some(t => t.status === 'pending' || t.status === 'uploading');
+        if (!unfinished && this.tasks.length > 0) {
+            this._finishedNotified = true;
+            loadHistory();
+        }
+    }
+
+    pause() { this.paused = true; this.onUpdate(); }
+    resume() { this.paused = false; this.onUpdate(); this.tick(); }
+    togglePause() { this.paused ? this.resume() : this.pause(); }
+
+    cancel(taskId) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+        if (task.status === 'pending') {
+            task.status = 'cancelled';
+            this.onUpdate();
+            this._maybeNotifyFinished();
+        } else if (task.status === 'uploading') {
+            if (task.abortController) {
+                try { task.abortController.abort(); } catch (e) {}
+            }
+            if (task.xhr) {
+                try { task.xhr.abort(); } catch (e) {}
+            }
+        }
+    }
+
+    retry(taskId) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (!task) return;
+        if (task.status === 'failed' || task.status === 'cancelled') {
+            task.status = 'pending';
+            task.progress = 0;
+            task.loaded = 0;
+            task.rate = 0;
+            task.error = null;
+            task.result = null;
+            this._finishedNotified = false;
+            this.onUpdate();
+            this.tick();
+        }
+    }
+
+    cancelAll() {
+        for (const task of this.tasks) {
+            if (task.status === 'pending' || task.status === 'uploading') {
+                this.cancel(task.id);
+            }
+        }
+    }
+
+    clearFinished() {
+        this.tasks = this.tasks.filter(t =>
+            t.status !== 'done' && t.status !== 'failed' && t.status !== 'cancelled');
+        this.onUpdate();
+    }
+}
+
+const queue = new UploadQueue({
+    concurrency: 3,
+    onUpdate: renderQueue,
+    doUpload: performUpload,
+});
+
+/* ============================================================
+   队列 UI
+   ============================================================ */
+function renderQueue() {
+    const stats = queue.stats;
+    const listEl = document.getElementById('queueList');
+    const statsEl = document.getElementById('queueStats');
+    const cardEl = document.getElementById('uploadQueueCard');
+    const pauseBtn = document.getElementById('queuePauseBtn');
+
+    if (queue.tasks.length === 0) {
+        cardEl.style.display = 'none';
+        return;
+    }
+    cardEl.style.display = 'block';
+
+    const parts = [];
+    if (stats.uploading) parts.push(`上传中 ${stats.uploading}`);
+    if (stats.pending) parts.push(`等待 ${stats.pending}`);
+    if (stats.done) parts.push(`✓${stats.done}`);
+    if (stats.failed) parts.push(`✗${stats.failed}`);
+    if (stats.cancelled) parts.push(`×${stats.cancelled}`);
+    statsEl.textContent = `[${stats.done}/${stats.total}] ` + parts.join(' · ');
+
+    if (queue.paused) {
+        pauseBtn.innerHTML = '<i class="fas fa-play"></i> 继续';
+        pauseBtn.classList.remove('btn-light');
+        pauseBtn.classList.add('btn-warning');
+    } else {
+        pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暂停';
+        pauseBtn.classList.remove('btn-warning');
+        pauseBtn.classList.add('btn-light');
+    }
+
+    listEl.innerHTML = queue.tasks.map(renderQueueItem).join('');
+}
+
+function renderQueueItem(t) {
+    const percent = Math.round((t.progress || 0) * 100);
+    let icon, barClass, statusText;
+    switch (t.status) {
+        case 'pending':
+            icon = '<i class="fas fa-clock text-muted"></i>';
+            barClass = 'bg-secondary';
+            statusText = '等待';
+            break;
+        case 'uploading':
+            icon = '<i class="fas fa-spinner fa-spin text-primary"></i>';
+            barClass = 'bg-primary';
+            statusText = percent + '%';
+            break;
+        case 'done':
+            icon = '<i class="fas fa-check-circle text-success"></i>';
+            barClass = 'bg-success';
+            statusText = '完成';
+            break;
+        case 'failed':
+            icon = '<i class="fas fa-exclamation-circle text-danger"></i>';
+            barClass = 'bg-danger';
+            statusText = '失败';
+            break;
+        case 'cancelled':
+            icon = '<i class="fas fa-ban text-secondary"></i>';
+            barClass = 'bg-secondary';
+            statusText = '取消';
+            break;
+    }
+    const canCancel = t.status === 'pending' || t.status === 'uploading';
+    const canRetry = t.status === 'failed' || t.status === 'cancelled';
+    const tooltip = t.error ? `title="${escapeHtml(t.error)}"` : '';
+
+    let detailText = '';
+    if (t.status === 'uploading' && t.loaded > 0) {
+        const sizeText = `${formatBytes(t.loaded)} / ${formatBytes(t.file_size)}`;
+        const speedText = t.rate > 0 ? ` · ${formatSpeed(t.rate)}` : '';
+        detailText = `<div class="queue-speed">${sizeText}${speedText}</div>`;
+    }
+
+    return `
+        <div class="queue-item" ${tooltip}>
+            <div style="width: 22px; text-align: center;" class="me-2">${icon}</div>
+            <div class="flex-grow-1 me-2" style="min-width: 0;">
+                <div class="queue-name" title="${escapeHtml(t.file_name)}">${escapeHtml(t.file_name)}</div>
+                <div class="queue-bar">
+                    <div class="progress-bar ${barClass}" style="width: ${percent}%;"></div>
+                </div>
+                ${detailText}
+            </div>
+            <div class="queue-status me-2" style="width: 48px; text-align: right;">${statusText}</div>
+            <div style="width: 72px; text-align: right;">
+                ${canCancel ? `<button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="queue.cancel('${t.id}')" title="取消"><i class="fas fa-times"></i></button>` : ''}
+                ${canRetry ? `<button class="btn btn-sm btn-outline-warning py-0 px-1" onclick="queue.retry('${t.id}')" title="重试"><i class="fas fa-redo"></i></button>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+document.getElementById('queuePauseBtn').addEventListener('click', () => queue.togglePause());
+document.getElementById('queueCancelAllBtn').addEventListener('click', () => {
+    if (confirm('取消所有未完成的任务？')) queue.cancelAll();
+});
+document.getElementById('queueClearBtn').addEventListener('click', () => queue.clearFinished());
+
+function autoConcurrency(files) {
+    const avg = files.reduce((s, f) => s + f.size, 0) / files.length;
+    if (avg > 50 * 1024 * 1024) return 1;
+    if (avg > 5 * 1024 * 1024) return 2;
+    const c = parseInt(concurrencyInput.value);
+    return Math.min(5, Math.max(2, isFinite(c) ? c : 3));
+}
+
+/* ============================================================
+   事件绑定
+   ============================================================ */
+localFileInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const ok = await confirmLogMode();
+    if (!ok) {
+        localFileInput.value = '';
+        return;
+    }
+
+    normalFileCount.textContent = `已选 ${files.length} 个`;
+    queue.concurrency = autoConcurrency(files);
+    queue.add(files, 'normal');
+    localFileInput.value = '';
+    normalFileCount.textContent = '';
+});
+
+signFileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    signFileCount.textContent = `已选 ${files.length} 个`;
+    queue.concurrency = autoConcurrency(files);
+    queue.add(files, 'sign');
+    signFileInput.value = '';
+    signFileCount.textContent = '';
+});
+
+signUploadBtn.addEventListener('click', () => {
+    const files = Array.from(signFileInput.files);
+    if (files.length === 0) { alert('请先选择文件'); return; }
+    const targetName = signTargetName.value.trim();
+    queue.concurrency = autoConcurrency(files);
+    queue.add(files, 'sign', (f) => (files.length === 1 && targetName) ? targetName : f.name);
+    signFileInput.value = '';
+    signFileCount.textContent = '';
+    signTargetName.value = '';
+});
+
+uploadUrlBtn.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) return alert('请输入URL');
+
+    if (!capabilities.url_upload) {
+        return alert('当前环境不支持 URL 上传');
+    }
+
+    const ok = await confirmLogMode();
+    if (!ok) return;
+
+    const btn = uploadUrlBtn;
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    const tempTask = { xhr: null, abortController: null };
+    try {
+        const fd = new FormData();
+        fd.append('mode', modeSelect.value);
+        fd.append('token', tokenInput.value);
+        fd.append('uid', uidInput.value);
+        fd.append('system', systemInput.value);
+        fd.append('platform', platformInput.value);
+        fd.append('url', url);
+        const resp = await xhrUpload('/api/upload', fd, tempTask, null);
+        if (resp.success) {
+            alert('上传成功！\n链接：' + resp.remote_url);
+            await loadHistory();
+        } else {
+            alert('上传失败：' + (resp.error || '未知错误'));
+        }
+    } catch (e) {
+        if (e && e.field) showFieldError(e.field, e.message);
+        else alert('上传失败：' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        urlInput.value = '';
+    }
+});
+
+if (doLoginBtn) {
+    doLoginBtn.addEventListener('click', async () => {
+        const account = document.getElementById('loginAccount').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        const isStudent = document.getElementById('loginAsStudent').checked;
+        const errorDiv = document.getElementById('loginError');
+        if (!account || !password) {
+            errorDiv.textContent = '请填写账号和密码';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        errorDiv.style.display = 'none';
+        try {
+            const resp = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userAccount: account, password, userType: isStudent ? 1 : 0 })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                tokenInput.value = data.token;
+                uidInput.value = data.uid;
+                const detected = detectSystemPlatform();
+                systemInput.value = detected.system;
+                platformInput.value = detected.platform;
+                await saveConfig();
+                speedCache = { browser: null, readboy: null, e2e: null };
+                alert(`登录成功！欢迎 ${data.userName || account}`);
+                bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+                document.getElementById('loginPassword').value = '';
+            } else {
+                errorDiv.textContent = data.error || '登录失败';
+                errorDiv.style.display = 'block';
+            }
+        } catch (err) {
+            errorDiv.textContent = '网络错误：' + err.message;
+            errorDiv.style.display = 'block';
+        }
+    });
+}
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        render();
+    });
+});
+searchInput.addEventListener('input', (e) => {
+    searchKeyword = e.target.value;
+    render();
+});
+refreshBtn.addEventListener('click', () => loadHistory());
+clearAllHistoryBtn.addEventListener('click', async () => {
+    if (!confirm('⚠️ 删除所有记录？')) return;
+    await fetch('/api/history', { method: 'DELETE' });
+    await loadHistory();
+});
+gridViewBtn.addEventListener('click', () => { currentView = 'grid'; render(); });
+listViewBtn.addEventListener('click', () => { currentView = 'list'; render(); });
+document.getElementById('previewModal').addEventListener('hidden.bs.modal', cleanPreviewModal);
+
+document.getElementById('copySpeedReportBtn').addEventListener('click', () => {
+    const content = document.getElementById('speedReportContent').textContent;
+    navigator.clipboard.writeText(content).then(() => alert('报告已复制'))
+        .catch(() => alert('复制失败'));
+});
+
+window.addEventListener('beforeunload', (e) => {
+    const active = queue.tasks.some(t => t.status === 'uploading' || t.status === 'pending');
+    if (active) {
+        e.preventDefault();
+        e.returnValue = '还有上传任务未完成，确定离开吗？';
+    }
+});
+
+/* ============================================================
+   初始化
+   ============================================================ */
+(async function init() {
+    await detectCapabilities();
+    await loadConfig();
+    const c = parseInt(concurrencyInput.value);
+    if (isFinite(c) && c >= 1 && c <= 10) queue.concurrency = c;
+    await loadHistory();
+})();
+</script>
+</body>
+</html>
