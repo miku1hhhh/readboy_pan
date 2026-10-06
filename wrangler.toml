@@ -1,12 +1,3 @@
 name = "readboy-pan"
 compatibility_date = "2026-10-01"
 pages_build_output_dir = "public"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "netdisk-history"
-database_id = "c6dcf851-8ca4-430e-81fb-98d968d70285"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "14f86b24058344e4b102a9f753142bcb"
